@@ -1,4 +1,4 @@
-# 🏗 Scaffold-ETH
+# Using 🏗 Scaffold-ETH to create a metalog smart contract
 
 > everything you need to build on Ethereum! 🚀
 
