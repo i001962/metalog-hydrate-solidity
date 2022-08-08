@@ -7,15 +7,12 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract MetaLog {
     using PRBMathSD59x18 for int256; 
-    event SetLN(address sender, int256 quantile, int256[] coeffs);
+    event GetQuantile(address sender, int256 quantile);
     // GLOBALS
     int256 public quantile;    //0x06f05b59d3b20000 === 0.5
                                //0x0c59ea48da190000 === 0.89
 //["-0x062838e0865204ea","0x045c937afddaa9d2","0x045c937afddaa9d2","0x074b2caf2eb6469c","0x1d5c4ea2451aaf2"]
-    int256[] public coeffs;
-
-    
-
+    int256[] internal coeffs;
     // I haven't learned how to avoid this need for BigNumbers yet
     struct BasisDefaults {
         int256 half;
@@ -27,19 +24,17 @@ contract MetaLog {
         int256 six;
         int256 eight;
     }
- // FUNCTIONS
 
-    function setACoeffsFN(int256[] memory theCoeffs) public {
+ // FUNCTIONS
+    function setACoeffs(int256[] memory theCoeffs) public {
         coeffs = theCoeffs;
     }
     
-    function getACoeffsFN() public view returns (int256[] memory) {
+    function getACoeffs() public view returns (int256[] memory) {
         return coeffs;
-    }
-    //    int256[] memory _aCoeffsID = theCoeffs;
-    
+    }    
 
-    function basisFn(int256 y, int256 t) internal view returns (int256)
+    function basis(int256 y, int256 t) internal view returns (int256)
         {
             console.log("basisFn: t");
             console.logInt(int256(t));
@@ -55,7 +50,7 @@ contract MetaLog {
             int256 oneMinusY = basis.one - y; // 50000 
             int256 yDivOneMinusY = y.div(oneMinusY);
             int256 yMinusHalf = y - basis.half;
-            // F me hack, cant figuer out int to int256 conversion for 1 = 0x0de0b6b3a7640000
+            // F me hack, cant figure out int to int256 conversion for 1 = 0x0de0b6b3a7640000
             int256 newT = 0;
             if (t == 1) {
                 newT = basis.one;
@@ -90,88 +85,51 @@ contract MetaLog {
 
             if (t == 1) { // 1
                 result = basis.one;
-                console.log("You are 1 coeff and returning 1");
-
+                console.log("You are 1 coeff ");
             } else if (t == 2) { // 2      
-                console.log("You are 2 coeffs");
                 result = yDivOneMinusY.ln();  //20907411=ln(8090909)
-
-                console.log("You are y / oneMinusY ");
-                console.logInt(yDivOneMinusY); //  8090909 
-            
+                console.log("You are 2 ");            
             } else if (t == 3) {
                 result = yMinusHalf.mul(yDivOneMinusYLn);
-
                 console.log("Coeff 3 ");
-                console.logInt(yDivOneMinusYLn);
-
-            } // result = (y - 0.5) * ln(y / (1 - y));
+            } 
             else if (t == 4) {
-                //result = y - basis.half;
                 result = yMinusHalf;
-
                 console.log("coeff 4 "); // just for ref
-                console.logInt(result);
-
             } else if (t >= 5 && t % 2 == 1) { // t is odd
                 int256 floorTMinusOneDivTwo = tMnusOneDivTwo.floor();
                 result = yMinusHalf.pow(floorTMinusOneDivTwo);
-                console.log("coeff 5  inside");
-                console.logInt(result);
-                
-                console.log("coeff 5 t % basis.two "); // just for ref
-                console.logInt(t % basis.two);
-                console.log("coeff 5 or odd floorTMinusOneDivTwo "); // just for ref
-                console.logInt(floorTMinusOneDivTwo);
-
+                console.log("coeff 5 "); // just for ref
             } else if (t >= 6 && t % 2 == 0) {
-                
                 int256 floorTMinusOneDivTwo = tMnusOneDivTwo.floor();
                 int256 almostThere = yMinusHalf.pow(floorTMinusOneDivTwo);
                 result = almostThere.mul(yDivOneMinusYLn);
-
-                console.log("coeff 6 t % basis.two "); // just for ref
-                //console.logInt((t-basis.one) % basis.two);
-                console.log("coeff 6 or even floorTMinusOneDivTwo "); // just for ref
-                console.logInt(floorTMinusOneDivTwo);
-                console.log("almostThere "); // just for ref
-                console.logInt(almostThere);
-                
+                console.log("coeff 6 "); // just for ref
             }
-
             console.log("Returning result ");
             console.logInt(result);
             return result;
         }
 
-    function setLN(int256 newQuantile, int256[5] calldata inputCoeffs)
-    public  { // ?? calldata or memory, need to get this to state storage
-        /*
-        console.log("INPUT COEFFS");
-        console.log(inputCoeffs.length); 
-        console.log(Strings.toString(inputCoeffs));
-        console.log("INPUT COEFFS");
-        */
-        int256[] memory newCoeffs = new int256[](inputCoeffs.length);
-        for (uint256 k = 0; k < inputCoeffs.length; k++) {
-            newCoeffs[k] = inputCoeffs[k];
-            console.logInt(newCoeffs[k]);
+    //function setLN(int256 forProbability, int256[5] calldata inputCoeffs)
+    function getQuantile(int256 forProbability)
+    public  { 
+         int256[] memory storedCoeffs = getACoeffs();
+         console.log('test ', storedCoeffs.length);
+         for (uint256 n = 0; n < storedCoeffs.length; n++) {
+            console.logInt(storedCoeffs[n]);
         }
-        //coeffs[newQuantile] = newCoeffs;
-        // TODO store newCoeffs in state storage
-        //coeffs[newQuantile] = newCoeffs;
-        setACoeffsFN(newCoeffs);
-        
+    
         uint256 i = 0;
-        while (i < inputCoeffs.length) {
+        while (i < storedCoeffs.length) {
              i++; // basis is 1 indexed
             console.log(i);
             int256 newI = int256(i); // converting explicitly here couldn't get next line to work otherwise
-            quantile = basisFn(newQuantile, newI); // ?? why is int256(i) showing 1 vs 100000000
+            quantile = basis(forProbability, newI); // ?? why is int256(i) showing 1 vs 100000000
             // need to fill array with return values of basisFn
         }
     
-        emit SetLN(msg.sender, quantile, newCoeffs);
+        emit GetQuantile(msg.sender, quantile);
     }
 
 }
