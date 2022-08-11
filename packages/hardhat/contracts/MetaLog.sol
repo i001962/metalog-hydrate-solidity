@@ -7,13 +7,11 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract MetaLog {
     using PRBMathSD59x18 for int256; 
-    event GetQuantile(address sender, int256 quantile);
     // GLOBALS
-    int256 public quantile;    //0x06f05b59d3b20000 === 0.5
-                               //0x0c59ea48da190000 === 0.89
-//["-0x062838e0865204ea","0x045c937afddaa9d2","0x045c937afddaa9d2","0x074b2caf2eb6469c","0x1d5c4ea2451aaf2"]
+    //0x06f05b59d3b20000 === 0.5 //0x0c59ea48da190000 === 0.89
+    //["-0x062838e0865204ea","0x045c937afddaa9d2","-0x06632bf1c33f2d08","0x074b2caf2eb6469c","0x1d5c4ea2451ac020"]
     int256[] internal coeffs;
-    // I haven't learned how to avoid this need for BigNumbers yet
+
     struct BasisDefaults {
         int256 half;
         int256 one; 
@@ -26,11 +24,13 @@ contract MetaLog {
     }
 
  // FUNCTIONS
-    function setACoeffs(int256[] memory theCoeffs) public {
+    function setACoeffs(int256[] memory theCoeffs) external {
+        console.logInt(int256(theCoeffs.length));
+        require (theCoeffs.length >= 2 && theCoeffs.length <= 16, 'too many or few coeefs'); 
         coeffs = theCoeffs;
     }
-    
-    function getACoeffs() public view returns (int256[] memory) {
+
+    function getACoeffs() external view returns (int256[] memory) {
         return coeffs;
     }    
 
@@ -50,6 +50,7 @@ contract MetaLog {
             int256 oneMinusY = basis.one - y; // 50000 
             int256 yDivOneMinusY = y.div(oneMinusY);
             int256 yMinusHalf = y - basis.half;
+
             // F me hack, cant figure out int to int256 conversion for 1 = 0x0de0b6b3a7640000
             int256 newT = 0;
             if (t == 1) {
@@ -65,71 +66,53 @@ contract MetaLog {
             } else if (t == 6) {
                 newT = basis.six;
             } else { newT = 0;} // will need to go to 16
+            int256 tMinusOne = newT - basis.one; // uuuugh newT not t
+            // End F me hack,
 
-            int256 tMinusOne = newT - basis.one; // uuuugh netT not t
             int256 tMnusOneDivTwo = tMinusOne.div(basis.two);
             int256 yDivOneMinusYLn = yDivOneMinusY.ln();
 
-            /*
-            console.log("t is processing value  ");
-            console.logInt(t);
-            console.log("one - y ");
-            console.logInt(oneMinusY);
-            console.log("y ");
-            console.logInt(y);
-            console.log("yDivOneMinusY = y / oneMinusY");
-            console.logInt(yDivOneMinusY);
-            console.log("(t-1) / basis.two "); // just for ref
-            console.logInt(tMnusOneDivTwo);
-            */
-
-            if (t == 1) { // 1
+            if (t == 1) {
                 result = basis.one;
                 console.log("You are 1 coeff ");
-            } else if (t == 2) { // 2      
-                result = yDivOneMinusY.ln();  //20907411=ln(8090909)
-                console.log("You are 2 ");            
+            } else if (t == 2) { 
+                result = yDivOneMinusY.ln();  
+                console.log("You are 2 coeff ");
             } else if (t == 3) {
                 result = yMinusHalf.mul(yDivOneMinusYLn);
-                console.log("Coeff 3 ");
-            } 
-            else if (t == 4) {
+                console.log("You are 3 coeff ");
+            } else if (t == 4) {
                 result = yMinusHalf;
-                console.log("coeff 4 "); // just for ref
+                console.log("You are 4 coeff ");
             } else if (t >= 5 && t % 2 == 1) { // t is odd
                 int256 floorTMinusOneDivTwo = tMnusOneDivTwo.floor();
                 result = yMinusHalf.pow(floorTMinusOneDivTwo);
-                console.log("coeff 5 "); // just for ref
+                console.log("You are 5 coeff ");
             } else if (t >= 6 && t % 2 == 0) {
                 int256 floorTMinusOneDivTwo = tMnusOneDivTwo.floor();
                 int256 almostThere = yMinusHalf.pow(floorTMinusOneDivTwo);
                 result = almostThere.mul(yDivOneMinusYLn);
-                console.log("coeff 6 "); // just for ref
+                console.log("You are 6 coeff ");
             }
-            console.log("Returning result ");
             console.logInt(result);
             return result;
-        }
-
-    //function setLN(int256 forProbability, int256[5] calldata inputCoeffs)
-    function getQuantile(int256 forProbability)
-    public  { 
-         int256[] memory storedCoeffs = getACoeffs();
-         console.log('test ', storedCoeffs.length);
-         for (uint256 n = 0; n < storedCoeffs.length; n++) {
-            console.logInt(storedCoeffs[n]);
-        }
+        }    
     
-        uint256 i = 0;
-        while (i < storedCoeffs.length) {
-             i++; // basis is 1 indexed
-            console.log(i);
-            int256 newI = int256(i); // converting explicitly here couldn't get next line to work otherwise
-            quantile = basis(forProbability, newI); // ?? why is int256(i) showing 1 vs 100000000
-            // need to fill array with return values of basisFn
-        }
-    
-        emit GetQuantile(msg.sender, quantile);
+    function getQuantile(int256 forProbability) external view returns (int256) { 
+            //int256[] memory storedCoeffs = getACoeffs();
+            int256[] memory storedCoeffs = coeffs;
+            int256[] memory vectorLocal = new int256[](storedCoeffs.length);
+            int256 answer;
+            console.log('test ', storedCoeffs.length);
+            
+            for (uint256 n = 0; n < storedCoeffs.length; n++) { //
+                console.logInt(storedCoeffs[n]);
+                console.logInt(vectorLocal[n]);
+                console.log('this is n before basis for ', n);
+                int256 coeffPosition = int256(n+1);  // basis is 1 indexed, converting explicitly here couldn't get next line to work otherwise
+                // ?? why is int256(i) showing 1 vs 100000000
+                answer += (basis(forProbability, coeffPosition)) * storedCoeffs[n];
+            }
+            return answer / (10 ** 18); // convert to decimal
     }
-
 }

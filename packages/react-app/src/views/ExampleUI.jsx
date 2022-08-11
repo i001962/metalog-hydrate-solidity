@@ -24,7 +24,7 @@ export default function ExampleUI({
   const [newLN, setNewLN] = useState(0.0);
   // just testing to from Bn
   (async function () {
-    const x = toBn("6");
+    const x = toBn("2.11565238380834");
     //const result = ln(x);
     //console.log('result:', fromBn(result));
     let x1 = new BigNumber(123.4567);

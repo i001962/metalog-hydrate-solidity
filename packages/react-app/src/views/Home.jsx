@@ -14,6 +14,8 @@ function Home({ yourLocalBalance, readContracts }) {
   // in this case, let's keep track of 'purpose' variable from our contract
   const purpose = useContractReader(readContracts, "YourContract", "purpose");
   const quantile = useContractReader(readContracts, "MetaLog", "quantile");
+  const coeefs = useContractReader(readContracts, "Structs", "coeffs");
+
   console.log(quantile);
   return (
     <div>
