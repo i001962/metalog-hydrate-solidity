@@ -2,8 +2,6 @@
 pragma solidity >=0.8.4;
 
 import "prb-math/contracts/PRBMathSD59x18.sol";
-import "hardhat/console.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract MetaLog {
     using PRBMathSD59x18 for int256; 
@@ -25,7 +23,6 @@ contract MetaLog {
 
  // FUNCTIONS
     function setACoeffs(int256[] memory theCoeffs) external {
-        console.logInt(int256(theCoeffs.length));
         require (theCoeffs.length >= 2 && theCoeffs.length <= 16, 'too many or few coeefs'); 
         coeffs = theCoeffs;
     }
@@ -36,8 +33,6 @@ contract MetaLog {
 
     function basis(int256 y, int256 t) internal view returns (int256)
         {
-            console.log("basisFn: t");
-            console.logInt(int256(t));
             BasisDefaults memory basis;
             basis.half = 0x06f05b59d3b20000;       
             basis.one = 0x0de0b6b3a7640000;
@@ -74,27 +69,20 @@ contract MetaLog {
 
             if (t == 1) {
                 result = basis.one;
-                console.log("You are 1 coeff ");
             } else if (t == 2) { 
                 result = yDivOneMinusY.ln();  
-                console.log("You are 2 coeff ");
             } else if (t == 3) {
                 result = yMinusHalf.mul(yDivOneMinusYLn);
-                console.log("You are 3 coeff ");
             } else if (t == 4) {
                 result = yMinusHalf;
-                console.log("You are 4 coeff ");
             } else if (t >= 5 && t % 2 == 1) { // t is odd
                 int256 floorTMinusOneDivTwo = tMnusOneDivTwo.floor();
                 result = yMinusHalf.pow(floorTMinusOneDivTwo);
-                console.log("You are 5 coeff ");
             } else if (t >= 6 && t % 2 == 0) {
                 int256 floorTMinusOneDivTwo = tMnusOneDivTwo.floor();
                 int256 almostThere = yMinusHalf.pow(floorTMinusOneDivTwo);
                 result = almostThere.mul(yDivOneMinusYLn);
-                console.log("You are 6 coeff ");
             }
-            console.logInt(result);
             return result;
         }    
     
@@ -103,13 +91,9 @@ contract MetaLog {
             int256[] memory storedCoeffs = coeffs;
             int256[] memory vectorLocal = new int256[](storedCoeffs.length);
             int256 answer;
-            console.log('test ', storedCoeffs.length);
             
             for (uint256 n = 0; n < storedCoeffs.length; n++) { //
-                console.logInt(storedCoeffs[n]);
-                console.logInt(vectorLocal[n]);
-                console.log('this is n before basis for ', n);
-                int256 coeffPosition = int256(n+1);  // basis is 1 indexed, converting explicitly here couldn't get next line to work otherwise
+                 int256 coeffPosition = int256(n+1);  // basis is 1 indexed, converting explicitly here couldn't get next line to work otherwise
                 // ?? why is int256(i) showing 1 vs 100000000
                 answer += (basis(forProbability, coeffPosition)) * storedCoeffs[n];
             }
