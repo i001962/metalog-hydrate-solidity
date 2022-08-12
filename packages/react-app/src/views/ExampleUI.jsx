@@ -24,12 +24,31 @@ export default function ExampleUI({
   const [newLN, setNewLN] = useState(0.0);
   // just testing to from Bn
   (async function () {
-    const x = toBn("2.11565238380834");
+    const x7 = toBn("17669");
+    const x8 = toBn("7440893");
+    const x9 = toBn("1343");
+    const x10 = toBn("2399993");
+    const x11 = toBn("2100869");
+    const x12 = toBn("1918303");
+    const x13 = toBn("1624729");
+    const x14 = toBn("7450987");
+    const x15 = toBn("7580");
+    const x16 = toBn("7560584");
+
     //const result = ln(x);
     //console.log('result:', fromBn(result));
     let x1 = new BigNumber(123.4567);
     let y = BigNumber('8.0'); //0x6f05b59d3b200000
-    console.log("x1:", x);
+    console.log("x7:", x7);
+    console.log("x8:", x8);
+    console.log("x9:", x9);
+    console.log("x10:", x10);
+    console.log("x11:", x11);
+    console.log("x12:", x12);
+    console.log("x13:", x13);
+    console.log("x14:", x14);
+    console.log("x15:", x15);
+    console.log("x16:", x16);
   })();
 
 
