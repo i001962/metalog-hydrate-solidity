@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "prb-math/contracts/PRBMathSD59x18.sol";
 import "hardhat/console.sol";
+
 // SAMPLE DATA
 //0x06f05b59d3b20000 === 0.5 //0x0c59ea48da190000 === 0.89 for the probbility input
 //["-0x062838e0865204ea","0x045c937afddaa9d2","-0x06632bf1c33f2d08","0x074b2caf2eb6469c","0x1d5c4ea2451ac020"] for the aCoeffs
@@ -118,11 +119,25 @@ contract MetaLog {
             return result;
         }    
     
-    function getQuantile(int256 forProbability, int256[] memory aCoeffs) external pure returns (int256 answer) {
+    function getQuantile(int256 forProbability, int256[] memory aCoeffs,string memory boundedness, int256 lowerBound, int256 upperBound) external view returns (int256 answer) {
             for (uint256 n = 0; n < aCoeffs.length; n++) { //
                 int256 coeffPosition = int256(n+1);  // basis is 1 indexed
                 answer += (basis(forProbability, coeffPosition)) * aCoeffs[n];
             }
-            return answer / (10 ** 18); // convert to decimal
+            if (keccak256(bytes(boundedness)) == keccak256(bytes("bl"))){
+                int256 answerHolder = answer / (10 ** 18);
+                answer = lowerBound + answerHolder.exp();
+            } else if (keccak256(bytes(boundedness)) == keccak256(bytes("bu"))){
+                int256 answerHolder = answer / (10 ** 18);
+                int256 upperBoundHolder = answerHolder.mul(-0x0de0b6b3a7640000);  // -1
+                int256 upperBoundExpHolder = upperBoundHolder.exp();
+                answer = upperBound - upperBoundExpHolder;
+            } else if (keccak256(bytes(boundedness)) == keccak256(bytes("b"))){
+                int256 answerHolder = answer / (10 ** 18);
+                answer = lowerBound + (upperBound * answerHolder.exp()) / (0x0de0b6b3a7640000 + answerHolder.exp());
+            } else if (keccak256(bytes(boundedness)) == keccak256(bytes("un"))){
+                answer = answer / (10 ** 18);
+            } 
+            return answer; // / (10 ** 18); // convert to decimal
     }
 }

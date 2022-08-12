@@ -24,7 +24,7 @@ export default function ExampleUI({
   const [newLN, setNewLN] = useState(0.0);
   // just testing to from Bn
   (async function () {
-    const x7 = toBn("17669");
+    const x7 = toBn("-1");
     const x8 = toBn("7440893");
     const x9 = toBn("1343");
     const x10 = toBn("2399993");
