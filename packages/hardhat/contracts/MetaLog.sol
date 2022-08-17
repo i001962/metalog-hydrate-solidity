@@ -143,11 +143,6 @@ contract MetaLog {
             return answer; // / (10 ** 18); // convert to decimal
     }
 
-    function getMod(uint256 n, uint256 m) internal pure returns (uint256) {
-        uint256 remain = n % m;
-        uint256 holdMeNow = 0; //remain.floor();
-        return holdMeNow;
-    }
     function add(int256 a, int256 b) internal pure returns (int256) {
         int256 c = a + b;
         assert(c >= a);
