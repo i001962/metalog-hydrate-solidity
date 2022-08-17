@@ -19,7 +19,19 @@ describe("Metalog contract tests", function () {
       myContract = await MetaLog.deploy();
     });
 
-    describe("getQuantile()", function () {
+    describe("Testing functions ", function () {
+        it("getHdrRandom", async function () {
+            const entityId = "0x0de0b6b3a7640000";
+            const varId = "0x0de0b6b3a7640000";
+            const option1 = "0x1bc16d674ec80000";
+            const option2 = "0x1bc16d674ec80000";
+            const pmIndex = "0x0de0b6b3a7640000";
+            await myContract.getHdrRandom(entityId, varId, option1, option2, pmIndex);
+            
+            //expect(await myContract.getHdrRandom(entityId, varId, option1, option2, pmIndex)).to.equal("911532170604914426");
+            expect(await myContract.getHdrRandom(entityId, varId, option1, option2, pmIndex)).to.equal("781865267781540751");
+        });
+                                                                                                        
         it("getQuantile from probability - unbounded", async function () {
             const forProbability = "0x0c59ea48da190000";
             const aCoeffs = ["-0x062838e0865204ea","0x045c937afddaa9d2","-0x06632bf1c33f2d08","0x074b2caf2eb6469c","0x1d5c4ea2451ac020"];
